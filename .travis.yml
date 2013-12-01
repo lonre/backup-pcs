@@ -1,0 +1,16 @@
+language: ruby
+bundler_args: --without development
+script: 'bundle exec rake spec'
+
+rvm:
+  - 1.9.3
+  - 2.0.0
+  - rbx-2.1.1
+  - jruby-19mode
+  - ruby-head
+
+matrix:
+  allow_failures:
+    - rvm: rbx-2.1.1
+    - rvm: jruby-19mode
+    - rvm: ruby-head
