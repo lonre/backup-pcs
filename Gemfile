@@ -7,7 +7,7 @@ end
 
 group :test, :development do
   gem 'rake'
-  gem 'rspec'
+  gem 'rspec', '~> 2.14'
 end
 
 gem 'rubysl', platforms: :rbx
