@@ -11,7 +11,7 @@
 ```
 $ gem install backup-pcs
 ```
-`backup-pcs` 当前支持 Ruby(MRI) 版本：1.9.3, 2.0.0
+`backup-pcs` 当前支持 Ruby(MRI) 版本：1.9.3, 2.0, 2.1
 
 ## 用法
 
