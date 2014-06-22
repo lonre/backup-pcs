@@ -6,14 +6,16 @@ require 'baidu/pcs'
 module Backup
   module Storage
     class PCS < Base
+      include Storage::Cycler
       class Error < Backup::Error; end
 
-      attr_accessor :client_id, :client_secret, :dir_name, :max_retries, :retry_waitsec
+      attr_accessor :client_id, :client_secret, :cache_path, :dir_name, :max_retries, :retry_waitsec
 
       def initialize(model, storage_id=nil)
         super
 
         @path          ||= 'backups'
+        @cache_path    ||= '.cache'
         @max_retries   ||= 10
         @retry_waitsec ||= 30
       end
@@ -94,11 +96,12 @@ module Backup
       end
 
       def cached_file
-        File.join(Config.cache_path, "pcs_#{storage_id}_#{client_id}")
+        path = cache_path.start_with?('/') ? cache_path : File.join(Config.root_path, cache_path)
+        File.join(path, "pcs_#{storage_id}_#{client_id}")
       end
 
       def write_cache!(session)
-        FileUtils.mkdir_p(Config.cache_path)
+        FileUtils.mkdir_p(File.dirname(cached_file))
         File.open(cached_file, "w") do |cache_file|
           cache_file.write(Base64.encode64(Marshal.dump(session)))
         end

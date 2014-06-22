@@ -12,6 +12,10 @@ module Backup
         expect(storage).to be_a(Storage::Base)
       end
 
+      it 'includes Storage::::Cycler' do
+        expect(storage).to be_a(Storage::Cycler)
+      end
+
       it 'has default config' do
         expect(storage.storage_id   ).to be_nil
         expect(storage.keep         ).to be_nil
@@ -19,6 +23,7 @@ module Backup
         expect(storage.client_secret).to be_nil
         expect(storage.dir_name     ).to be_nil
         expect(storage.path         ).to eq 'backups'
+        expect(storage.cache_path   ).to eq '.cache'
         expect(storage.max_retries  ).to be 10
         expect(storage.retry_waitsec).to be 30
       end
@@ -30,6 +35,7 @@ module Backup
           c.client_secret = 'cs'
           c.dir_name      = 'dn'
           c.path          = 'myback'
+          c.cache_path    = '.mycache_path'
           c.max_retries   = 2
           c.retry_waitsec = 3
         end
@@ -40,8 +46,21 @@ module Backup
         expect(storage.client_secret).to eq('cs')
         expect(storage.dir_name     ).to eq('dn')
         expect(storage.path         ).to eq 'myback'
+        expect(storage.cache_path   ).to eq '.mycache_path'
         expect(storage.max_retries  ).to be(2)
         expect(storage.retry_waitsec).to be(3)
+      end
+
+      it 'inits with absolute cache path' do
+        storage = Storage::PCS.new(model, 'sid') do |c|
+          c.client_id     = 'ci'
+          c.client_secret = 'cs'
+          c.cache_path    = '/tmp/pcs_tmp'
+          c.dir_name      = 'dn'
+          c.path          = 'myback'
+        end
+
+        expect(storage.cache_path).to eq '/tmp/pcs_tmp'
       end
     end
 
@@ -339,14 +358,15 @@ module Backup
     describe '#cached_file' do
       it 'has right cached file path' do
         path1 = Storage::PCS.new(model, 'sid') do |c|
-          c.client_id     = 'ci'
+          c.client_id = 'ci'
         end.send(:cached_file)
-        expect(path1).to eq(Config.cache_path + '/pcs_sid_ci')
+        expect(path1).to eq("#{Config.root_path}/.cache/pcs_sid_ci")
 
         path2 = Storage::PCS.new(model) do |c|
-          c.client_id     = 'ci2'
+          c.client_id  = 'ci2'
+          c.cache_path = '/tmp/pcs'
         end.send(:cached_file)
-        expect(path2).to eq(Config.cache_path + '/pcs__ci2')
+        expect(path2).to eq('/tmp/pcs/pcs__ci2')
       end
     end
 
@@ -356,12 +376,13 @@ module Backup
 
       before do
         storage.client_id = 'ci'
+        allow(File).to receive(:dirname).and_return(File.join(Config.root_path, '.cache'))
         allow(FileUtils).to receive(:mkdir_p)
         allow(storage).to receive(:cached_file).and_return(cached_file)
       end
 
       it 'writes cached file' do
-        expect(FileUtils).to receive(:mkdir_p).with(Config.cache_path)
+        expect(FileUtils).to receive(:mkdir_p).with(File.join(Config.root_path, '.cache'))
         expect(File).to receive(:open).with(cached_file, 'w').and_yield(cached_file)
         data = Base64.encode64(Marshal.dump(session))
         expect(cached_file).to receive(:write).with(data)
