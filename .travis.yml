@@ -4,13 +4,14 @@ script: 'bundle exec rake spec'
 
 rvm:
   - 1.9.3
-  - 2.0.0
-  - rbx-2.1.1
+  - 2.0
+  - 2.1
+  - rbx-2.2
   - jruby-19mode
   - ruby-head
 
 matrix:
   allow_failures:
-    - rvm: rbx-2.1.1
+    - rvm: rbx-2.2
     - rvm: jruby-19mode
     - rvm: ruby-head
