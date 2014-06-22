@@ -27,9 +27,13 @@ module Backup
           Logger.info "Storing '#{ dest }'..."
           auto_refresh_token do
             File.open(src, 'r') do |file|
-              client.upload file, path: dest, block_upload: true,
-                                              retry_times: @max_retries,
-                                              retry_waitsec: @retry_waitsec
+              options = {
+                path:          dest,
+                block_upload:  true,
+                retry_times:   @max_retries,
+                retry_waitsec: @retry_waitsec
+              }
+              client.upload file, options
             end
           end
         end
@@ -78,7 +82,7 @@ module Backup
         tries = 0
         begin
           yield
-        rescue Baidu::Errors::AuthError => e
+        rescue Baidu::Errors::AuthError, Errno::EPIPE => e
           raise Error, 'Too many auth errors' if (tries += 1) > 5
           Logger.info "Refreshing Baidu session..."
           session = oauth_client.refresh(cached_session.refresh_token)

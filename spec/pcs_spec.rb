@@ -313,6 +313,20 @@ module Backup
         }.to raise_error(Storage::PCS::Error)
       end
 
+      it 'closes connection when uploading file' do
+        work_p = proc { raise Errno::EPIPE }
+        allow(oauth_client).to receive(:refresh).and_return(session)
+        allow(storage).to receive(:write_cache!) do
+          work_p = proc { }
+        end
+
+        expect(Logger).to       receive(:info).with('Refreshing Baidu session...')
+        expect(oauth_client).to receive(:refresh)
+        expect(storage).to      receive(:write_cache!).with(session)
+
+        storage.send(:auto_refresh_token) { work_p.call }
+      end
+
       it 'raises when there are too many auth errors' do
         work_p = proc { raise Baidu::Errors::AuthError, 'expired' }
         allow(oauth_client).to receive(:refresh).and_return(session)
