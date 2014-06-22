@@ -13,6 +13,8 @@ $ gem install backup-pcs
 ```
 `backup-pcs` 当前支持 Ruby(MRI) 版本：1.9.3, 2.0, 2.1
 
+如果你使用的是 `Backup 3.x` 版，请对应使用 `backup-pcs` 的 `0.0.3` 版本
+
 ## 用法
 
 此说明只提供了本 Gem 的配置使用方法，关于 Backup 的详细使用方法，请参考 [Backup GitHub Page](https://github.com/meskyanichi/backup)
@@ -37,6 +39,7 @@ store_with :PCS do |p|
   p.client_secret = 'a_cliet_secret'
   p.dir_name      = 'Backups'         # 开通 PCS API 权限时所设置的文件目录
   p.path          = 'data'            # 保存路径，从 dir_name 算起
+  # p.cache_path    = '.cache'        # 授权文件保存目录，默认在 Backup 的 .cache 下，可以设置为绝对路径
   # p.keep          = 2
   # p.max_retries   = 10              # 出错后重试次数，默认 10 次
   # p.retry_waitsec = 30              # 出错后重试等待秒数，默认 30 秒
